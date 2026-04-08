@@ -1,5 +1,6 @@
-# Agreements and local config — never commit
+# Agreements, interviewer materials — never commit
 AGREEMENTS.md
+TASK_CASES.md
 
 # Environment variables
 .env

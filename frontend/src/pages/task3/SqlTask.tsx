@@ -9,16 +9,6 @@ interface QueryResult {
   rowCount: number;
 }
 
-const EXAMPLE_QUERIES = [
-  'SELECT * FROM Customers',
-  'SELECT * FROM Products WHERE Price > 20',
-  "SELECT * FROM Products WHERE Unit LIKE '%box%'",
-  'SELECT CustomerName, Country FROM Customers ORDER BY Country',
-  'SELECT COUNT(*) as Total FROM Orders',
-  'SELECT p.ProductName, c.CategoryName FROM Products p JOIN Categories c ON p.CategoryID = c.CategoryID',
-  'SELECT Country, COUNT(*) as Count FROM Customers GROUP BY Country ORDER BY Count DESC',
-];
-
 export default function SqlTask() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -78,15 +68,6 @@ export default function SqlTask() {
               <div key={t} className="sql-table-name">📋 {t}</div>
             ))}
           </div>
-
-          <div className="sql-examples">
-            <h3>Примеры запросов</h3>
-            {EXAMPLE_QUERIES.map((q, i) => (
-              <button key={i} className="sql-example-btn" onClick={() => setQuery(q)}>
-                {q.length > 45 ? q.slice(0, 45) + '...' : q}
-              </button>
-            ))}
-          </div>
         </aside>
 
         {/* Main */}
@@ -101,7 +82,7 @@ export default function SqlTask() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Введите SQL-запрос здесь...&#10;Пример: SELECT * FROM Customers"
+              placeholder="Введите SQL-запрос здесь..."
               spellCheck={false}
               autoComplete="off"
               autoCorrect="off"

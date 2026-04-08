@@ -5,6 +5,8 @@ import InvalidSession from './pages/InvalidSession';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import ShopTask from './pages/task1/ShopTask';
+import AboutPage from './pages/task1/AboutPage';
+import ContactsPage from './pages/task1/ContactsPage';
 import SwaggerTask from './pages/task2/SwaggerTask';
 import SqlTask from './pages/task3/SqlTask';
 import AiTask from './pages/task4/AiTask';
@@ -27,6 +29,8 @@ export default function App() {
         <Route element={<AuthGuard />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="task1" element={<ShopTask />} />
+          <Route path="task1/about" element={<AboutPage />} />
+          <Route path="task1/contacts" element={<ContactsPage />} />
           <Route path="task2" element={<SwaggerTask />} />
           <Route path="task3" element={<SqlTask />} />
           <Route path="task4" element={<AiTask />} />

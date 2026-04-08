@@ -16,7 +16,7 @@ export default function AiTask() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  // BUG 8: messageCount in header — stale, not synced with actual count
+  // BUG 8: counter never updates — initialized once, never changed
   const [messageCount] = useState(0);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -26,24 +26,23 @@ export default function AiTask() {
   }, [messages]);
 
   async function handleSend() {
-    // BUG 2: no length check — very long text will break layout
-    // BUG 3: XSS — we render text directly via innerHTML in bot bubble
     const userMsg: Message = {
       id: Date.now(),
       role: 'user',
-      text: input, // could be empty — BUG 1
+      // BUG 1: shown in chat even when empty — and BUG 2: no length limit
+      text: input,
       timestamp: new Date().toISOString(),
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    // BUG 1: we clear input and send even if empty
     setInput('');
     setSending(true);
 
     try {
-      // BUG 7: no loading indicator shown — just setSending but UI has no spinner in chat area
+      // BUG 7: server takes 3 seconds — no spinner or typing indicator here
       const { data } = await axios.post(`/api/${sessionId}/ai/chat`, {
-        message: input || undefined, // sends undefined if empty — triggers "Привет, undefined!"
+        // BUG 1: sends undefined when empty → triggers "Привет, undefined!" from bot
+        message: input || undefined,
       });
 
       const botMsg: Message = data.message;
@@ -64,10 +63,8 @@ export default function AiTask() {
   }
 
   async function handleClearHistory() {
-    // BUG 6: calls API to clear server-side, but does NOT clear local state
-    // so UI still shows old messages
+    // BUG 6: server history cleared, but setMessages NOT called → UI keeps showing old messages
     await axios.delete(`/api/${sessionId}/ai/history`);
-    // intentionally NOT calling setMessages([])
   }
 
   function handleKeyDown(e: React.KeyboardEvent) {
@@ -86,7 +83,7 @@ export default function AiTask() {
         </button>
         <div className="ai-header-info">
           <span className="ai-header-title">🤖 AI Ассистент</span>
-          {/* BUG 8: counter stuck at 0 and never updates */}
+          {/* BUG 8: always 0 — never updates */}
           <span className="ai-message-count">Сообщений: {messageCount}</span>
         </div>
         <button className="btn-secondary ai-clear-btn" onClick={handleClearHistory}>
@@ -95,7 +92,7 @@ export default function AiTask() {
       </header>
 
       <div className="ai-chat">
-        {messages.length === 0 && (
+        {messages.length === 0 && !sending && (
           <div className="ai-welcome">
             <div className="ai-welcome-icon">🤖</div>
             <p>Привет! Я AI-ассистент. Задайте мне вопрос.</p>
@@ -110,7 +107,8 @@ export default function AiTask() {
         {messages.map((msg) => (
           <div key={msg.id} className={`ai-message ai-message-${msg.role}`}>
             <div className="ai-bubble">
-              {/* BUG 3: bot messages rendered via dangerouslySetInnerHTML — XSS vulnerability */}
+              {/* BUG 3: bot messages use dangerouslySetInnerHTML → XSS.
+                  Try sending: <img src=x onerror="alert('XSS')"> */}
               {msg.role === 'bot'
                 ? <span dangerouslySetInnerHTML={{ __html: msg.text }} />
                 : <span>{msg.text}</span>}
@@ -121,18 +119,13 @@ export default function AiTask() {
           </div>
         ))}
 
-        {/* BUG 7: no typing indicator even though server takes 8 seconds */}
-        {sending && (
-          <div className="ai-message ai-message-bot">
-            <div className="ai-bubble ai-bubble-sending">...</div>
-          </div>
-        )}
+        {/* BUG 7: when sending=true, NO loading indicator shown — 3-second blank pause */}
 
         <div ref={bottomRef} />
       </div>
 
       <div className="ai-input-area">
-        {/* BUG 2: no maxLength — user can paste 10000 chars and layout breaks */}
+        {/* BUG 2: no maxLength — paste huge text, layout breaks */}
         <textarea
           className="ai-input"
           value={input}
@@ -140,9 +133,10 @@ export default function AiTask() {
           onKeyDown={handleKeyDown}
           placeholder="Введите сообщение... (Enter — отправить)"
           rows={2}
+          disabled={sending}
         />
         <button className="btn-primary ai-send-btn" onClick={handleSend} disabled={sending}>
-          Отправить
+          {sending ? 'Отправка...' : 'Отправить'}
         </button>
       </div>
     </div>

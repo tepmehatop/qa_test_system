@@ -131,23 +131,6 @@ export default function ErrorDetectiveTask() {
       </header>
 
       <div className="detective-content">
-        <div className="detective-instructions card">
-          <h2>🔍 Инструкция</h2>
-          <p>
-            Нажимайте на кнопки. При нажатии появится сообщение об ошибке.
-            Откройте <strong>DevTools → Network</strong> (F12) и изучите каждый запрос.
-          </p>
-          <p>Для каждой кнопки определите:</p>
-          <ol>
-            <li>Какой HTTP-код ответа?</li>
-            <li>Чья ошибка — <strong>Frontend</strong> или <strong>Backend</strong>?</li>
-            <li>Какой разработчик должен исправить баг?</li>
-          </ol>
-          <p className="detective-note">
-            💡 Подсказка: иногда запрос вообще не уходит на сервер — смотрите также вкладку <strong>Console</strong>.
-          </p>
-        </div>
-
         <div className="detective-grid">
           {cases.map((c) => (
             <div key={c.id} className="detective-card card">

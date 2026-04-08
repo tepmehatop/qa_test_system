@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -22,6 +22,8 @@ interface CartItem {
 
 type SortOption = 'default' | 'price-asc' | 'price-desc' | 'name';
 
+const CART_KEY = 'shop_cart';
+
 export default function ShopTask() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
@@ -30,14 +32,34 @@ export default function ShopTask() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sortBy, setSortBy] = useState<SortOption>('default');
   const [cartOpen, setCartOpen] = useState(false);
-  const [wishlist, setWishlist] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // BUG 3 (counter): initialized once from localStorage — never updates reactively
+  // Only becomes correct after page refresh (when localStorage is re-read on mount)
+  const [displayCount] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem(CART_KEY);
+      if (saved) {
+        const items: CartItem[] = JSON.parse(saved);
+        return items.reduce((s, i) => s + i.quantity, 0);
+      }
+    } catch {/* ignore */}
+    return 0;
+  });
+
+  // Ref to track whether we should show the broken image for product 7 (no fallback)
+  const brokenImgRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     axios.get(`/api/${sessionId}/shop/products`).then((r) => {
       setProducts(r.data);
       setLoading(false);
     });
+    // Load cart from localStorage on mount
+    try {
+      const saved = localStorage.getItem(CART_KEY);
+      if (saved) setCart(JSON.parse(saved));
+    } catch {/* ignore */}
   }, [sessionId]);
 
   // BUG 1 (sort): sorts as strings — intentional
@@ -55,41 +77,32 @@ export default function ShopTask() {
   }
 
   async function handleAddToCart(product: Product) {
-    // BUG 5: even if stock === 0, this button is available (no disabled state)
     try {
-      // This always returns 400 from backend — BUG 1 of the task
-      await axios.post(
-        `/api/${sessionId}/shop/cart`,
-        { productId: product.id, quantity: 1 },
-      );
-      // If somehow succeeds, add to local cart
-      setCart((prev) => {
-        const existing = prev.find((i) => i.product.id === product.id);
-        if (existing) {
-          return prev.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
-        }
-        return [...prev, { product, quantity: 1 }];
-      });
-    } catch (_err) {
-      // BUG: error received but NOT shown to user — cart silently "works"
-      // Add to local cart anyway so it looks like it worked
-      setCart((prev) => {
-        const existing = prev.find((i) => i.product.id === product.id);
-        if (existing) {
-          return prev.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
-        }
-        return [...prev, { product, quantity: 1 }];
-      });
+      await axios.post(`/api/${sessionId}/shop/cart`, { productId: product.id, quantity: 1 });
+    } catch {
+      // BUG: 400 error silently swallowed — cart appears to work
     }
+
+    // Update in-memory cart state (sidebar works correctly)
+    const updated = (() => {
+      const existing = cart.find((i) => i.product.id === product.id);
+      if (existing) {
+        return cart.map((i) => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...cart, { product, quantity: 1 }];
+    })();
+
+    setCart(updated);
+    // Persist to localStorage — counter will be correct only after page refresh
+    localStorage.setItem(CART_KEY, JSON.stringify(updated));
+    // displayCount is NOT updated here — that's the bug
   }
 
-  // BUG 4: wishlist button — adds to state but no visual feedback shown
+  // BUG 4: wishlist — no visual feedback
   function handleWishlist(id: number) {
-    setWishlist((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
-    // No toast, no visual change — intentional
+    void id; // state not tracked — no effect
   }
 
-  const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
   const cartTotal = cart.reduce((s, i) => s + i.product.price * i.quantity, 0);
   const sorted = getSorted(products);
 
@@ -100,14 +113,15 @@ export default function ShopTask() {
           ← Назад
         </button>
         <div className="shop-header-center">
-          {/* BUG: орфографическая ошибка #1 — "Интренет-магазин" */}
+          {/* BUG орфо #1: "Интренет-магазин" */}
           <h1>Интренет-магазин TechStore</h1>
-          <p>Лучшие товары по лучщим ценам</p>{/* BUG: орфографическая ошибка #2 — "лучщим" */}
+          {/* BUG орфо #2: "лучщим" */}
+          <p>Лучшие товары по лучщим ценам</p>
         </div>
         <button className="cart-btn" onClick={() => setCartOpen(true)}>
           🛒 Корзина
-          {/* BUG 3: counter not updated — always shows stale value on first render */}
-          <span className="cart-count">{cartCount}</span>
+          {/* BUG 3: displayCount is stale — shows value from last page load only */}
+          <span className="cart-count">{displayCount}</span>
         </button>
       </header>
 
@@ -136,13 +150,31 @@ export default function ShopTask() {
           {sorted.map((product) => (
             <div key={product.id} className="product-card">
               <div className="product-image-wrap">
-                <img src={product.image} alt={product.name} className="product-image" />
+                {/* BUG 2: product 7 has broken image (no onError fallback for it) */}
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="product-image"
+                  onError={product.id === 7 ? undefined : (e) => {
+                    const img = e.currentTarget;
+                    img.style.display = 'none';
+                    const parent = img.parentElement;
+                    if (parent && !brokenImgRef.current.has(product.id)) {
+                      brokenImgRef.current.add(product.id);
+                      const ph = document.createElement('div');
+                      ph.className = 'product-image-placeholder';
+                      ph.textContent = product.category === 'Электроника' ? '📱' :
+                        product.category === 'Компьютеры' ? '💻' : '🔧';
+                      parent.appendChild(ph);
+                    }
+                  }}
+                />
+                {/* BUG 4: heart always 🤍, never changes — no visual feedback */}
                 <button
                   className="wishlist-btn"
                   onClick={() => handleWishlist(product.id)}
                   title="В избранное"
                 >
-                  {/* BUG 4: heart icon never changes — no visual feedback */}
                   🤍
                 </button>
               </div>
@@ -155,7 +187,7 @@ export default function ShopTask() {
                 </div>
                 <div className="product-footer">
                   <div className="product-price">
-                    {/* BUG 3 (price): one product has no currency symbol — handled in data */}
+                    {/* BUG 7 (price): product 3 has no currency symbol */}
                     {product.price.toLocaleString('ru-RU')}{product.currency ? ` ${product.currency}` : ''}
                   </div>
                   <div className="product-stock">
@@ -164,9 +196,16 @@ export default function ShopTask() {
                       : <span className="out-of-stock">Нет в наличии</span>}
                   </div>
                 </div>
-                {/* BUG 5: button active even when stock === 0 */}
-                <button className="btn-primary add-to-cart" onClick={() => handleAddToCart(product)}>
-                  В корзину
+                {/*
+                  BUG 5: product with stock=0 should have disabled button.
+                  CSS class "add-to-cart--disabled" LOOKS disabled (gray, cursor not-allowed)
+                  but the HTML 'disabled' attribute is NOT set → button is still clickable!
+                */}
+                <button
+                  className={`btn-primary add-to-cart${product.stock === 0 ? ' add-to-cart--disabled' : ''}`}
+                  onClick={() => handleAddToCart(product)}
+                >
+                  {product.stock === 0 ? 'Недоступно' : 'В корзину'}
                 </button>
               </div>
             </div>
@@ -174,9 +213,28 @@ export default function ShopTask() {
         </div>
       )}
 
-      {/* BUG 6: footer link → 404 */}
+      {/* BUG 6: "Политика конфиденциальности" link → backend 404 */}
       <footer className="shop-footer">
-        <p>© 2024 TechStore. <a href="/about-us">О компании</a> · <a href="/contacts">Контакты</a> · <a href="/policy-page-not-exist">Политика конфиденциальности</a></p>
+        <p>
+          © 2024 TechStore.{' '}
+          {/* О компании and Контакты work fine */}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); navigate(`/testQasystem/${sessionId}/task1/about`); }}
+          >
+            О компании
+          </a>
+          {' · '}
+          <a
+            href="#"
+            onClick={(e) => { e.preventDefault(); navigate(`/testQasystem/${sessionId}/task1/contacts`); }}
+          >
+            Контакты
+          </a>
+          {' · '}
+          {/* BUG 6: goes to /api/privacy-policy → backend 404 JSON */}
+          <a href="/api/privacy-policy">Политика конфиденциальности</a>
+        </p>
       </footer>
 
       {/* Cart sidebar */}
