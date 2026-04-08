@@ -1,0 +1,159 @@
+.sql-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sql-layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.sql-sidebar {
+  width: 280px;
+  background: white;
+  border-right: 1px solid var(--color-border);
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sql-sidebar h2 { font-size: 1.1rem; color: var(--color-text); }
+.sql-sidebar-desc { color: var(--color-text-muted); font-size: 0.85rem; margin-top: -0.5rem; }
+.sql-sidebar h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--color-text-muted); letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+
+.sql-tables { display: flex; flex-direction: column; gap: 0.3rem; }
+.sql-table-name {
+  font-size: 0.875rem;
+  color: var(--color-text);
+  padding: 0.35rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+.sql-table-name:hover { background: var(--color-bg); }
+
+.sql-examples { display: flex; flex-direction: column; gap: 0.3rem; }
+.sql-example-btn {
+  text-align: left;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+  font-family: 'Courier New', monospace;
+  color: var(--color-primary);
+  cursor: pointer;
+  word-break: break-all;
+  line-height: 1.3;
+}
+.sql-example-btn:hover { background: #eef2ff; }
+
+.sql-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 1.5rem;
+  gap: 1rem;
+  background: var(--color-bg);
+}
+
+.sql-editor-wrap {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sql-editor-header {
+  background: #1e293b;
+  color: #94a3b8;
+  padding: 0.6rem 1rem;
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.sql-hint { font-size: 0.75rem; color: #475569; }
+
+.sql-editor {
+  width: 100%;
+  min-height: 140px;
+  border: none;
+  border-radius: 0;
+  padding: 1rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.9rem;
+  resize: vertical;
+  background: #0f172a;
+  color: #e2e8f0;
+  line-height: 1.6;
+}
+.sql-editor:focus { box-shadow: none; border: none; }
+.sql-editor::placeholder { color: #475569; }
+
+.sql-editor-footer {
+  background: white;
+  padding: 0.75rem 1rem;
+  display: flex;
+  gap: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.sql-error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  font-family: 'Courier New', monospace;
+}
+
+.sql-results {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.sql-results-header {
+  padding: 0.75rem 1rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+}
+
+.sql-table-wrap { overflow-x: auto; }
+
+.sql-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.sql-table th {
+  background: #f8fafc;
+  padding: 0.6rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  font-family: 'Courier New', monospace;
+  color: var(--color-primary);
+}
+.sql-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: var(--color-text);
+  font-family: 'Courier New', monospace;
+}
+.sql-table tr:last-child td { border-bottom: none; }
+.sql-table tr:hover td { background: #f8fafc; }
+
+.sql-no-data { padding: 1rem; color: var(--color-text-muted); font-size: 0.875rem; }

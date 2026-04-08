@@ -1,0 +1,102 @@
+.detective-page {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.detective-header {
+  background: white;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.detective-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.detective-instructions h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+.detective-instructions p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.6;
+}
+.detective-instructions ol {
+  margin: 0.5rem 0 0.5rem 1.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  line-height: 2;
+}
+.detective-instructions strong { color: var(--color-text); }
+.detective-note {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  color: #92400e !important;
+  font-size: 0.85rem !important;
+  margin-top: 0.75rem !important;
+}
+
+.detective-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.detective-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+
+.detective-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.detective-case-num {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.detective-case-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.detective-case-desc {
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  flex: 1;
+}
+
+.detective-btn {
+  width: 100%;
+  font-size: 0.85rem;
+  padding: 0.5rem;
+}

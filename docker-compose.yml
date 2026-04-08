@@ -1,0 +1,37 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qa-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      # Hot reload: mount source
+      - ./backend/src:/app/src
+      # Persist SQLite DB across restarts
+      - qa-data:/app/data
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: qa-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      # Hot reload: mount source (exclude node_modules)
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  qa-data:
