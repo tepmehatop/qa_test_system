@@ -14,6 +14,8 @@ export const db = new Database(DB_PATH);
 
 // Enable WAL for better performance
 db.pragma('journal_mode = WAL');
+// Disable FK enforcement so seed data with simplified IDs works
+db.pragma('foreign_keys = OFF');
 
 export function initDb(): void {
   // Sessions table

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { db } from '../db';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 /**
  * GET /api/:sessionId/auth/ping
