@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: qa-backend
     ports:
-      - "3000:3000"
+      - "8100:8100"
     volumes:
       # Hot reload: mount source
       - ./backend/src:/app/src
@@ -23,7 +23,7 @@ services:
       dockerfile: Dockerfile
     container_name: qa-frontend
     ports:
-      - "5173:5173"
+      - "8173:8173"
     volumes:
       # Hot reload: mount source (exclude node_modules)
       - ./frontend/src:/app/src
